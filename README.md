@@ -1,9 +1,26 @@
-# Rafael Melhem onboarding
+# Rafael Melhem – Onboarding
 
-## Description:
+## Description
 
-My backend onboard
+This repository contains the backend onboarding tasks assigned to Rafael Melhem.
 
-## Environment and Tools \*:
+## Environment and Tools
 
-## Steps to run and debug \*:
+- Node.js
+- Nest.js
+- Docker
+- Postgres
+- VS Code with:
+  - ESLint
+  - Prettier
+
+## Steps to run and debug:
+
+```
+npm install
+
+npm run start:dev
+
+```
+
+Open your browser and go to: http://localhost:3000
