@@ -18,26 +18,6 @@ export class UsersController {
   @Post()
   async create(@Req() req: Request) {
     const { name, email, password, birthDate } = req.body;
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      console.log('Authorization header:', authHeader);
-      return { error_message: 'Missing or invalid Authorization header' };
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-
-    let payload;
-    try {
-      payload = this.jwtService.verify(token);
-    } catch (err) {
-      return { error_message: 'Invalid or expired token' };
-    }
-
-    if (!payload.email || !payload.password) {
-      return { error_message: 'Invalid token payload' };
-    }
-
     if (!password || password.length < 6) {
       return { error_message: 'Password should have at least 6 characters' };
     }
