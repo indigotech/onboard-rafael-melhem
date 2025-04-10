@@ -7,15 +7,16 @@ import { JwtService } from '@nestjs/jwt';
 const salt = 10;
 @Controller('users')
 export class UsersController {
+
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
   ) {}
 
+
   @Post()
   async create(@Req() req: Request) {
     const { name, email, password, birthDate } = req.body;
-
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -35,7 +36,6 @@ export class UsersController {
     if (!payload.email || !payload.password) {
       return { error_message: 'Invalid token payload' };
     }
-
 
     if (!password || password.length < 6) {
       return { error_message: 'Password should have at least 6 characters' };
