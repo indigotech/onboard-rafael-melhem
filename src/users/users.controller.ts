@@ -12,6 +12,7 @@ export class UsersController {
     private readonly jwtService: JwtService,
   ) {}
 
+
   @Post()
   async create(@Req() req: Request) {
     const { name, email, password, birthDate } = req.body;
@@ -35,6 +36,7 @@ export class UsersController {
       return { error_message: 'Invalid token payload' };
     }
 
+
     if (!password || password.length < 6) {
       return { error_message: 'Password should have at least 6 characters' };
     }
@@ -53,6 +55,7 @@ export class UsersController {
       };
     }
 
+<<<<<<< HEAD
     const encrypted_password = await bcrypt.hash(password, salt);
     const user = await this.usersService.create({
       name,
