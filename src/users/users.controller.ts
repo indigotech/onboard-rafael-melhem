@@ -53,6 +53,7 @@ export class UsersController {
         error_message: 'Account already created using this email.',
       };
     }
+
     const encrypted_password = await bcrypt.hash(password, salt);
     const user = await this.usersService.create({
       name,
@@ -64,6 +65,7 @@ export class UsersController {
     return userWithoutPassword;
   }
 }
+
 @Controller('auth')
 export class UserLoginController {
   constructor(
