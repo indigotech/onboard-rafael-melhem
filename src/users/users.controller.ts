@@ -4,6 +4,7 @@ import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 
+
 const salt = 10;
 @Controller('users')
 export class UsersController {
@@ -102,5 +103,6 @@ export class UserLoginController {
       token: token,
       expiresIn: rememberMe ? '168h' : null,
     };
+
   }
 }
