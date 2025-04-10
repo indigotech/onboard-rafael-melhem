@@ -5,7 +5,6 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 
 const salt = 10;
-
 @Controller('users')
 export class UsersController {
   constructor(
