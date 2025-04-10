@@ -101,7 +101,6 @@ export class UserLoginController {
       },
       token: token,
       expiresIn: rememberMe ? '168h' : null,
-
     };
   }
 }
