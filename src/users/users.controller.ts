@@ -12,9 +12,11 @@ export class UsersController {
     private readonly jwtService: JwtService,
   ) {}
 
+
   @Post()
   async create(@Req() req: Request) {
     const { name, email, password, birthDate } = req.body;
+
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -61,6 +63,7 @@ export class UsersController {
       birthDate,
     });
     const { encrypted_password: _, ...userWithoutPassword } = user;
+
     return userWithoutPassword;
   }
 }
