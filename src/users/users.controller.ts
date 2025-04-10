@@ -1,6 +1,9 @@
 import { Controller, Post, Req } from '@nestjs/common';
 import { Request } from 'express';
 import { UsersService } from './users.service';
+import * as bcrypt from 'bcrypt';
+
+const salt = 10;
 
 @Controller('users')
 export class UsersController {
@@ -13,6 +16,7 @@ export class UsersController {
     if (!password || password.length < 6) {
       return { error_message: 'Password should have at least 6 characters' };
     }
+    const encrypted_password = await bcrypt.hash(password, salt);
 
     if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
       return {
@@ -31,10 +35,10 @@ export class UsersController {
     const user = await this.usersService.create({
       name,
       email,
-      password,
+      encrypted_password,
       birthDate,
     });
-    const { password: _, ...userWithoutPassword } = user;
+    const { encrypted_password: _, ...userWithoutPassword } = user;
     return userWithoutPassword;
   }
 }
