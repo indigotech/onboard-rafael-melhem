@@ -97,7 +97,7 @@ export class UserLoginController {
         birthDate: user.birthDate,
       },
       token: token,
-      expiresIn: rememberMe ? '168h' : null
+      expiresIn: rememberMe ? '168h' : null,
     };
   }
 }
