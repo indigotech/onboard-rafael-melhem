@@ -12,7 +12,6 @@ export class UsersController {
     private readonly jwtService: JwtService,
   ) {}
 
-
   @Post()
   async create(@Req() req: Request) {
     const { name, email, password, birthDate } = req.body;
@@ -82,6 +81,7 @@ export class UserLoginController {
     const signOption = rememberMe ? { expiresIn: '168h' } : undefined;
     const token = this.jwtService.sign(body, signOption);
 
+
     const user = await this.usersService.findByEmail(email);
     if (!user) {
       return { error_message: 'Invalid email or password' };
@@ -101,6 +101,7 @@ export class UserLoginController {
       },
       token: token,
       expiresIn: rememberMe ? '168h' : null,
+
     };
   }
 }
