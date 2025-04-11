@@ -2,6 +2,7 @@ import { Controller, Post, Req, Body } from '@nestjs/common';
 import { Request } from 'express';
 import { UsersService } from './users.service';
 import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
 
 const salt = 10;
 
@@ -44,12 +45,15 @@ export class UsersController {
 }
 @Controller('auth')
 export class UserLoginController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService,
+  ) {}
 
   @Post()
   async userLogin(@Body() body: { email: string; password: string }) {
     const { email, password } = body;
-
+    const token = this.jwtService.sign(body);
     const user = await this.usersService.findByEmail(email);
     if (!user) {
       return { error_message: 'Invalid email or password' };
@@ -67,7 +71,7 @@ export class UserLoginController {
         email: user.email,
         birthDate: user.birthDate,
       },
-      token: 'the_token',
+      token: token,
     };
   }
 }
