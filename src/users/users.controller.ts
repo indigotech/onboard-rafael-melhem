@@ -1,4 +1,4 @@
-import { Controller, Post, Req } from '@nestjs/common';
+import { Controller, Post, Req, Body } from '@nestjs/common';
 import { Request } from 'express';
 import { UsersService } from './users.service';
 import * as bcrypt from 'bcrypt';
@@ -40,5 +40,34 @@ export class UsersController {
     });
     const { encrypted_password: _, ...userWithoutPassword } = user;
     return userWithoutPassword;
+  }
+}
+@Controller('auth')
+export class UserLoginController {
+  constructor(private readonly usersService: UsersService) {}
+
+  @Post()
+  async userLogin(@Body() body: { email: string; password: string }) {
+    const { email, password } = body;
+
+    const user = await this.usersService.findByEmail(email);
+    if (!user) {
+      return { error_message: 'Invalid email or password' };
+    }
+
+    const isMatch = await bcrypt.compare(password, user.encrypted_password);
+    if (!isMatch) {
+      return { error_message: 'Invalid email or password' };
+    }
+
+    return {
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        birthDate: user.birthDate,
+      },
+      token: 'the_token',
+    };
   }
 }
