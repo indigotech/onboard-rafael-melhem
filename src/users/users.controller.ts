@@ -12,7 +12,6 @@ export class UsersController {
     private readonly jwtService: JwtService,
   ) {}
 
-
   @Post()
   async create(@Req() req: Request) {
     const { name, email, password, birthDate } = req.body;
@@ -54,8 +53,6 @@ export class UsersController {
         error_message: 'Account already created using this email.',
       };
     }
-
-<<<<<<< HEAD
     const encrypted_password = await bcrypt.hash(password, salt);
     const user = await this.usersService.create({
       name,
@@ -67,7 +64,6 @@ export class UsersController {
     return userWithoutPassword;
   }
 }
-
 @Controller('auth')
 export class UserLoginController {
   constructor(
@@ -82,7 +78,6 @@ export class UserLoginController {
     const { email, password, rememberMe } = body;
     const signOption = rememberMe ? { expiresIn: '168h' } : undefined;
     const token = this.jwtService.sign(body, signOption);
-
     const user = await this.usersService.findByEmail(email);
     if (!user) {
       return { error_message: 'Invalid email or password' };
