@@ -51,9 +51,12 @@ export class UserLoginController {
   ) {}
 
   @Post()
-  async userLogin(@Body() body: { email: string; password: string }) {
-    const { email, password } = body;
-    const token = this.jwtService.sign(body);
+  async userLogin(
+    @Body() body: { email: string; password: string; rememberMe: boolean },
+  ) {
+    const { email, password, rememberMe } = body;
+    const signOption = rememberMe ? { expiresIn: '168h' } : undefined;
+    const token = this.jwtService.sign(body, signOption);
     const user = await this.usersService.findByEmail(email);
     if (!user) {
       return { error_message: 'Invalid email or password' };
@@ -72,6 +75,7 @@ export class UserLoginController {
         birthDate: user.birthDate,
       },
       token: token,
+      expiresIn: rememberMe ? '168h' : null,
     };
   }
 }
