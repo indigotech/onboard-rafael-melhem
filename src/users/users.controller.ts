@@ -80,6 +80,7 @@ export class UserLoginController {
     const { email, password, rememberMe } = body;
     const signOption = rememberMe ? { expiresIn: '168h' } : undefined;
     const token = this.jwtService.sign(body, signOption);
+
     const user = await this.usersService.findByEmail(email);
     if (!user) {
       return { error_message: 'Invalid email or password' };
