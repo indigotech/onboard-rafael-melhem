@@ -8,16 +8,37 @@ const salt = 10;
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService,
+  ) {}
 
   @Post()
   async create(@Req() req: Request) {
     const { name, email, password, birthDate } = req.body;
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('Authorization header:', authHeader);
+      return { error_message: 'Missing or invalid Authorization header' };
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+
+    let payload;
+    try {
+      payload = this.jwtService.verify(token);
+    } catch (err) {
+      return { error_message: 'Invalid or expired token' };
+    }
+
+    if (!payload.email || !payload.password) {
+      return { error_message: 'Invalid token payload' };
+    }
 
     if (!password || password.length < 6) {
       return { error_message: 'Password should have at least 6 characters' };
     }
-    const encrypted_password = await bcrypt.hash(password, salt);
 
     if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
       return {
@@ -32,7 +53,7 @@ export class UsersController {
         error_message: 'Account already created using this email.',
       };
     }
-
+    const encrypted_password = await bcrypt.hash(password, salt);
     const user = await this.usersService.create({
       name,
       email,
