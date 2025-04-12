@@ -1,17 +1,13 @@
-import { Controller, Post, Req } from '@nestjs/common';
-import { Request } from 'express';
+import { Controller, Post, Body } from '@nestjs/common';
+import { UsersService } from 'src/users/users.service';
 
 @Controller('users')
-export class CreateUser {
+export class UsersController {
+  constructor(private readonly usersService: UsersService) { }
+
   @Post()
-  create(@Req() req: Request) {
-    const body = req.body;
-    const userData = {
-      id: 1,
-      name: body.name,
-      email: body.email,
-      birthDate: body.birthDate,
-    };
-    return userData;
+  async create(@Body() userData: any) {
+    const user = await this.usersService.create(userData);
+    return user;
   }
 }
