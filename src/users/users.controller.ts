@@ -1,6 +1,6 @@
 import { Controller, Post, Req, Body } from '@nestjs/common';
 import { Request } from 'express';
-import { UsersService } from './users.service';
+import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 
@@ -75,3 +75,4 @@ export class UserLoginController {
     };
   }
 }
+
