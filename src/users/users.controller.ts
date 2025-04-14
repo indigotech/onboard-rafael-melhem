@@ -1,6 +1,6 @@
 import { Controller, Post, Req } from '@nestjs/common';
 import { Request } from 'express';
-import { UsersService } from './users.service';
+import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
 
 const salt = 10;
