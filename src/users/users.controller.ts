@@ -1,6 +1,5 @@
-import { Controller, Post, Req } from '@nestjs/common';
-import { Request } from 'express';
-import { UsersService } from './users.service';
+import { Controller, Post, Body } from '@nestjs/common';
+import { UsersService } from 'src/users/users.service';
 
 @Controller('users')
 export class UsersController {
