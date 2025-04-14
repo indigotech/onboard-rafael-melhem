@@ -1,6 +1,6 @@
 import { Controller, Post, Req, Body } from '@nestjs/common';
 import { Request } from 'express';
-import { UsersService } from './users.service';
+import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 
@@ -80,7 +80,6 @@ export class UserLoginController {
     const { email, password, rememberMe } = body;
     const signOption = rememberMe ? { expiresIn: '168h' } : undefined;
     const token = this.jwtService.sign(body, signOption);
-
     const user = await this.usersService.findByEmail(email);
     if (!user) {
       return { error_message: 'Invalid email or password' };
@@ -100,6 +99,8 @@ export class UserLoginController {
       },
       token: token,
       expiresIn: rememberMe ? '168h' : null,
+
     };
   }
 }
+
