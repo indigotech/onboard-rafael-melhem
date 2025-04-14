@@ -12,7 +12,7 @@ export class User {
   email: string;
 
   @Column()
-  password: string;
+  encrypted_password: string;
 
   @Column()
   birthDate: Date;
