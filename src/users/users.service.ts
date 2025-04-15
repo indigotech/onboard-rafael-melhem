@@ -2,13 +2,89 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from 'src/users/users.entity';
+import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
+
+const DEFAULT_MINIMUM_PASSWORD_LENGTH = 6;
+const SALT = 10;
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    private readonly jwtService: JwtService
   ) {}
+
+  async createUser(data: {
+    name: string;
+    email: string;
+    password: string;
+    birthDate: Date;
+  }): Promise<{ user?: User; errorMessage?: string }> {
+    const { name, email, password, birthDate } = data;
+
+    if (!password || password.length < DEFAULT_MINIMUM_PASSWORD_LENGTH) {
+      return { errorMessage: 'Password should have at least 6 characters' };
+    }
+
+    if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
+      return {
+        errorMessage:
+          'Password should have at least one digit/number and one letter.',
+      };
+    }
+
+    const existingUser = await this.findByEmail(email);
+    if (existingUser) {
+      return {
+        errorMessage: 'Account already created using this email.',
+      };
+    }
+
+    const encryptedPassword = await bcrypt.hash(password, SALT);
+    const user = this.usersRepository.create({
+      name,
+      email,
+      birthDate,
+      encryptedPassword,
+    });
+
+    const savedUser = await this.usersRepository.save(user);
+    return { user: savedUser };
+  }
+
+  // async findAllOrdered(limit: number): Promise<User[]> {
+  //   return this.usersRepository.find({
+  //     take: limit,
+  //     order: {
+  //       name: 'ASC',
+  //     },
+  //   });
+  // }
+
+  async getUsersWithTokenValidation(
+    authHeader: string,
+    limit?: string,
+  ): Promise<any> {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return { errorMessage: 'Missing or invalid Authorization header' };
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+
+    try {
+      const payload = this.jwtService.verify(token, {
+        secret: process.env.AUTH_KEY,
+      });
+
+      const parsedLimit = limit ? parseInt(limit) : 10;
+      const users = await this.findAllOrdered(parsedLimit);
+      return users;
+    } catch (err) {
+      return { errorMessage: 'Invalid or expired token' };
+    }
+  }
 
   create(userData: Partial<User>): Promise<User> {
     const user = this.usersRepository.create(userData);
@@ -21,6 +97,15 @@ export class UsersService {
 
   findOne(id: number): Promise<User | null> {
     return this.usersRepository.findOneBy({ id });
+  }
+
+  async findAllOrdered(limit: number): Promise<User[]> {
+    return this.usersRepository.find({
+      take: limit,
+      order: {
+        name: 'ASC',
+      },
+    });
   }
 
   async remove(id: number): Promise<void> {

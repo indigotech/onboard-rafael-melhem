@@ -1,12 +1,11 @@
-import { Controller, Post, Req, Body } from '@nestjs/common';
+import { Controller, Post, Req, Body, Query, Get } from '@nestjs/common';
 import { Request } from 'express';
 import { UsersService } from 'src/users/users.service';
-import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
 
-const DEFAULT_MINIMUM_PASSWORD_LENGTH = 6;
 const WEEK_HOURS = '168h';
-const SALT = 10;
+
 @Controller('users')
 export class UsersController {
   constructor(
@@ -14,37 +13,28 @@ export class UsersController {
     private readonly jwtService: JwtService,
   ) {}
 
+  @Get()
+  async findAll(@Req() req: Request, @Query('limit') limit?: string) {
+    const authHeader = req.headers.authorization;
+    return this.usersService.getUsersWithTokenValidation(authHeader, limit);
+  }
+
   @Post()
   async create(@Req() req: Request) {
-    const minimumPasswordLength = DEFAULT_MINIMUM_PASSWORD_LENGTH;
-    const salt = SALT;
     const { name, email, password, birthDate } = req.body;
-    if (!password || password.length < minimumPasswordLength) {
-      return { errorMessage: 'Password should have at least 6 characters' };
-    }
 
-    if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
-      return {
-        errorMessage:
-          'Password should have at least one digit/number and one letter.',
-      };
-    }
-
-    const existingUser = await this.usersService.findByEmail(email);
-    if (existingUser) {
-      return {
-        errorMessage: 'Account already created using this email.',
-      };
-    }
-    const encryptedPassword = await bcrypt.hash(password, salt);
-    const user = await this.usersService.create({
+    const result = await this.usersService.createUser({
       name,
       email,
-      encryptedPassword,
+      password,
       birthDate,
     });
-    const { encryptedPassword: _, ...userWithoutPassword } = user;
 
+    if (result.errorMessage) {
+      return { errorMessage: result.errorMessage };
+    }
+
+    const { encryptedPassword: _, ...userWithoutPassword } = result.user!;
     return userWithoutPassword;
   }
 }
