@@ -5,7 +5,6 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
 
-
 const WEEK_HOURS = '168h';
 
 @Controller('users')
@@ -27,8 +26,6 @@ export class UsersController {
 
   @Post()
   async create(@Req() req: Request) {
-    const minimumPasswordLength = DEFAULT_MINIMUM_PASSWORD_LENGTH;
-    
     const { name, email, password, birthDate } = req.body;
 
     const result = await this.usersService.createUser({
