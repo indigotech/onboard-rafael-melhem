@@ -19,9 +19,17 @@ export class UsersController {
 
 
   @Get()
-  async findAll(@Req() req: Request, @Query('limit') limit?: number) {
+  async findAll(
+    @Req() req: Request,
+    @Query('limit') limit?: string,
+    @Query('skip') skip?: string,
+  ) {
     const authHeader = req.headers.authorization;
-    return this.usersService.getUsersWithTokenValidation(authHeader, limit);
+    const validation = this.usersService.validateToken(authHeader);
+    if (validation.errorMessage) {
+      return { errorMessage: validation.errorMessage };
+    }
+    return this.usersService.getUsersWithPagination(limit, skip);
   }
 
   @Post()
