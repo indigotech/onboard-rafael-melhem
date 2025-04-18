@@ -19,7 +19,7 @@ export class UsersController {
 
 
   @Get()
-  async findAll(@Req() req: Request, @Query('limit') limit?: string) {
+  async findAll(@Req() req: Request, @Query('limit') limit?: number) {
     const authHeader = req.headers.authorization;
     return this.usersService.getUsersWithTokenValidation(authHeader, limit);
   }

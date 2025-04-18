@@ -54,18 +54,9 @@ export class UsersService {
     return { user: savedUser };
   }
 
-  // async findAllOrdered(limit: number): Promise<User[]> {
-  //   return this.usersRepository.find({
-  //     take: limit,
-  //     order: {
-  //       name: 'ASC',
-  //     },
-  //   });
-  // }
-
   async getUsersWithTokenValidation(
     authHeader: string,
-    limit?: string,
+    limit: number = 10,
   ): Promise<any> {
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return { errorMessage: 'Missing or invalid Authorization header' };
@@ -77,9 +68,7 @@ export class UsersService {
       const payload = this.jwtService.verify(token, {
         secret: process.env.AUTH_KEY,
       });
-
-      const parsedLimit = limit ? parseInt(limit) : 10;
-      const users = await this.findAllOrdered(parsedLimit);
+      const users = await this.findAllOrdered(limit);
       return users;
     } catch (err) {
       return { errorMessage: 'Invalid or expired token' };
