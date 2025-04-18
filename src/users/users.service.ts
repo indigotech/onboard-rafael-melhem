@@ -7,6 +7,8 @@ import { JwtService } from '@nestjs/jwt';
 
 const DEFAULT_MINIMUM_PASSWORD_LENGTH = 6;
 const SALT = 10;
+const SKIP = 0;
+const LIMIT = 10;
 
 @Injectable()
 export class UsersService {
@@ -72,16 +74,14 @@ export class UsersService {
   }
 
   public async getUsersWithPagination(
-    limit?: string,
-    skip?: string,
+    limit: number = LIMIT,
+    skip: number = SKIP,
   ): Promise<any> {
-    const parsedLimit = limit ? parseInt(limit) : 10;
-    const parsedSkip = skip ? parseInt(skip) : 0;
 
     const totalUsers = await this.usersRepository.count();
     const users = await this.usersRepository.find({
-      skip: parsedSkip,
-      take: parsedLimit,
+      skip: skip,
+      take: limit,
       order: {
         name: 'ASC',
       },
@@ -90,15 +90,15 @@ export class UsersService {
     return {
       users,
       total: totalUsers,
-      hasPrevious: parsedSkip > 0,
-      hasNext: parsedSkip + parsedLimit < totalUsers,
+      hasPrevious: skip > 0,
+      hasNext: skip + limit < totalUsers,
     };
   }
 
   public async getUsersWithTokenValidation(
     authHeader: string,
-    limit?: string,
-    skip?: string,
+    limit: number = LIMIT,
+    skip: number = SKIP,
   ): Promise<any> {
     const validation = this.validateToken(authHeader);
     if (validation.errorMessage) {

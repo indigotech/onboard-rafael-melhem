@@ -12,7 +12,6 @@ export class UsersController {
   private readonly salt: number; 
   constructor(
     private readonly usersService: UsersService,
-    private readonly jwtService: JwtService,
     private readonly configService: ConfigService) { 
       this.salt = Number(this.configService.get<number>('SALT'))
     }
@@ -21,8 +20,8 @@ export class UsersController {
   @Get()
   async findAll(
     @Req() req: Request,
-    @Query('limit') limit?: string,
-    @Query('skip') skip?: string,
+    @Query('limit') limit?: number,
+    @Query('skip') skip?: number,
   ) {
     const authHeader = req.headers.authorization;
     const validation = this.usersService.validateToken(authHeader);
