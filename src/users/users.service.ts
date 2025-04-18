@@ -23,8 +23,8 @@ export class UsersService {
     birthDate: Date;
   }): Promise<{ user?: User; errorMessage?: string }> {
     const { name, email, password, birthDate } = data;
-
-    if (!password || password.length < DEFAULT_MINIMUM_PASSWORD_LENGTH) {
+    const minimumPasswordLength = DEFAULT_MINIMUM_PASSWORD_LENGTH;
+    if (!password || password.length < minimumPasswordLength) {
       return { errorMessage: 'Password should have at least 6 characters' };
     }
 
@@ -54,10 +54,7 @@ export class UsersService {
     return { user: savedUser };
   }
 
-  async getUsersWithTokenValidation(
-    authHeader: string,
-    limit: number = 10,
-  ): Promise<any> {
+  validateToken(authHeader: string): { errorMessage?: string; payload?: any } {
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return { errorMessage: 'Missing or invalid Authorization header' };
     }
@@ -68,11 +65,47 @@ export class UsersService {
       const payload = this.jwtService.verify(token, {
         secret: process.env.AUTH_KEY,
       });
-      const users = await this.findAllOrdered(limit);
-      return users;
+      return { payload };
     } catch (err) {
       return { errorMessage: 'Invalid or expired token' };
     }
+  }
+
+  public async getUsersWithPagination(
+    limit?: string,
+    skip?: string,
+  ): Promise<any> {
+    const parsedLimit = limit ? parseInt(limit) : 10;
+    const parsedSkip = skip ? parseInt(skip) : 0;
+
+    const totalUsers = await this.usersRepository.count();
+    const users = await this.usersRepository.find({
+      skip: parsedSkip,
+      take: parsedLimit,
+      order: {
+        name: 'ASC',
+      },
+    });
+
+    return {
+      users,
+      total: totalUsers,
+      hasPrevious: parsedSkip > 0,
+      hasNext: parsedSkip + parsedLimit < totalUsers,
+    };
+  }
+
+  public async getUsersWithTokenValidation(
+    authHeader: string,
+    limit?: string,
+    skip?: string,
+  ): Promise<any> {
+    const validation = this.validateToken(authHeader);
+    if (validation.errorMessage) {
+      return { errorMessage: validation.errorMessage };
+    }
+
+    return this.getUsersWithPagination(limit, skip);
   }
 
   create(userData: Partial<User>): Promise<User> {
