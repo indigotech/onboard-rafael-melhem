@@ -3,15 +3,21 @@ import { Request } from 'express';
 import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { ConfigService } from '@nestjs/config';
+
 
 const WEEK_HOURS = '168h';
 
 @Controller('users')
 export class UsersController {
+  private readonly salt: number; 
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
-  ) {}
+    private readonly configService: ConfigService) { 
+      this.salt = Number(this.configService.get<number>('SALT'))
+    }
+
 
   @Get()
   async findAll(@Req() req: Request, @Query('limit') limit?: string) {
@@ -21,6 +27,8 @@ export class UsersController {
 
   @Post()
   async create(@Req() req: Request) {
+    const minimumPasswordLength = DEFAULT_MINIMUM_PASSWORD_LENGTH;
+    
     const { name, email, password, birthDate } = req.body;
 
     const result = await this.usersService.createUser({
