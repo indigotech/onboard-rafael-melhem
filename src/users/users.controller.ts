@@ -1,48 +1,37 @@
 import { Controller, Post, Req, Body } from '@nestjs/common';
 import { Request } from 'express';
-import { UsersService } from './users.service';
+import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 
-const salt = 10;
+
+const DEFAULT_MINIMUM_PASSWORD_LENGTH = 6;
+const WEEK_HOURS = '168h';
 
 @Controller('users')
 export class UsersController {
+  private readonly salt: number; 
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
-  ) {}
+    private readonly configService: ConfigService) { 
+      this.salt = Number(this.configService.get<number>('SALT'))
+    }
+
 
   @Post()
   async create(@Req() req: Request) {
+    const minimumPasswordLength = DEFAULT_MINIMUM_PASSWORD_LENGTH;
+    
     const { name, email, password, birthDate } = req.body;
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      console.log('Authorization header:', authHeader);
-      return { error_message: 'Missing or invalid Authorization header' };
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-
-    let payload;
-    try {
-      payload = this.jwtService.verify(token);
-    } catch (err) {
-      return { error_message: 'Invalid or expired token' };
-    }
-
-    if (!payload.email || !payload.password) {
-      return { error_message: 'Invalid token payload' };
-    }
-
-    if (!password || password.length < 6) {
-      return { error_message: 'Password should have at least 6 characters' };
+    if (!password || password.length < minimumPasswordLength) {
+      return { errorMessage: 'Password should have at least 6 characters' };
     }
 
     if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
       return {
-        error_message:
+        errorMessage:
           'Password should have at least one digit/number and one letter.',
       };
     }
@@ -50,17 +39,18 @@ export class UsersController {
     const existingUser = await this.usersService.findByEmail(email);
     if (existingUser) {
       return {
-        error_message: 'Account already created using this email.',
+        errorMessage: 'Account already created using this email.',
       };
     }
-    const encrypted_password = await bcrypt.hash(password, salt);
+    const encryptedPassword = await bcrypt.hash(password, this.salt);
     const user = await this.usersService.create({
       name,
       email,
-      encrypted_password,
+      encryptedPassword,
       birthDate,
     });
-    const { encrypted_password: _, ...userWithoutPassword } = user;
+    const { encryptedPassword: _, ...userWithoutPassword } = user;
+
     return userWithoutPassword;
   }
 }
@@ -75,17 +65,19 @@ export class UserLoginController {
   async userLogin(
     @Body() body: { email: string; password: string; rememberMe: boolean },
   ) {
+    const weekHours = WEEK_HOURS;
     const { email, password, rememberMe } = body;
-    const signOption = rememberMe ? { expiresIn: '168h' } : undefined;
+    const signOption = rememberMe ? { expiresIn: weekHours } : undefined;
     const token = this.jwtService.sign(body, signOption);
+
     const user = await this.usersService.findByEmail(email);
     if (!user) {
-      return { error_message: 'Invalid email or password' };
+      return { errorMessage: 'Invalid email or password' };
     }
 
-    const isMatch = await bcrypt.compare(password, user.encrypted_password);
+    const isMatch = await bcrypt.compare(password, user.encryptedPassword);
     if (!isMatch) {
-      return { error_message: 'Invalid email or password' };
+      return { errorMessage: 'Invalid email or password' };
     }
 
     return {
@@ -96,7 +88,7 @@ export class UserLoginController {
         birthDate: user.birthDate,
       },
       token: token,
-      expiresIn: rememberMe ? '168h' : null,
+      expiresIn: rememberMe ? weekHours : null,
     };
   }
 }
