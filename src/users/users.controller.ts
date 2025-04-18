@@ -3,21 +3,27 @@ import { Request } from 'express';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+
 
 const DEFAULT_MINIMUM_PASSWORD_LENGTH = 6;
 const WEEK_HOURS = '168h';
-const SALT = 10;
+
 @Controller('users')
 export class UsersController {
+  private readonly salt: number; 
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
-  ) {}
+    private readonly configService: ConfigService) { 
+      this.salt = Number(this.configService.get<number>('SALT'))
+    }
+
 
   @Post()
   async create(@Req() req: Request) {
     const minimumPasswordLength = DEFAULT_MINIMUM_PASSWORD_LENGTH;
-    const salt = SALT;
+    
     const { name, email, password, birthDate } = req.body;
     if (!password || password.length < minimumPasswordLength) {
       return { errorMessage: 'Password should have at least 6 characters' };
@@ -36,7 +42,7 @@ export class UsersController {
         errorMessage: 'Account already created using this email.',
       };
     }
-    const encryptedPassword = await bcrypt.hash(password, salt);
+    const encryptedPassword = await bcrypt.hash(password, this.salt);
     const user = await this.usersService.create({
       name,
       email,
