@@ -84,7 +84,8 @@ export class UsersService {
       take: limit,
       order: {
         name: 'ASC',
-      },
+      }, 
+      relations: ['addresses'],
     });
 
     return {
