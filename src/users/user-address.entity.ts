@@ -6,17 +6,26 @@ export class UserAddress {
     @PrimaryGeneratedColumn()
     id: number;
 
+    @Column({ nullable: true })
+    createdAt: Date;
+
+    @Column({ nullable: true })
+    updatedAt: Date;    
+
+    @Column({ nullable: true })
+    deletedAt: Date;
+
     @Column()
     cep: string;
     
     @Column()
     street: string; 
 
-    @Column()
-    streetNumber: number;
+    @Column({ nullable: true })
+    streetNumber?: string;
 
-    @Column()
-    complement: string; 
+    @Column({ nullable: true })
+    complement?: string; 
 
     @Column()
     neighborhood: string; 
